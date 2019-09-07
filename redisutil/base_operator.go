@@ -2,10 +2,10 @@ package redisutil
 
 import (
 	"errors"
+	"github.com/anypick/infra-redis"
 	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
 	"log"
-	"register-go/infra/base/redis"
 	"time"
 )
 

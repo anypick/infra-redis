@@ -30,19 +30,20 @@ type Redis struct {
 }
 
 func (r *Redis) ConfigAdd(config map[interface{}]interface{}) {
-	tmpConfigs := make([]RedisConfig, 0)
-	redisConfigs := config["redisConfig"].([]map[interface{}]interface{})
-	for _, redisConfig := range redisConfigs {
+	interfaceRedisConfig := config["redisConfig"].([]interface{})
+	tmpConfigs := make([]RedisConfig, len(interfaceRedisConfig))
+	for i, v := range interfaceRedisConfig {
+		redisConfig := v.(map[interface{}]interface{})
 		tmpConfig := RedisConfig{}
 		tmpConfig.Addr = redisConfig["addr"].(string)
-		tmpConfig.Password = redisConfig["passsword"].(string)
+		tmpConfig.Password = redisConfig["password"].(string)
 		tmpConfig.DB = redisConfig["db"].(int)
 		tmpConfig.MaxRetries = redisConfig["maxRetries"].(int)
 		tmpConfig.PoolSize = redisConfig["poolSize"].(int)
 		tmpConfig.MinIdleConns = redisConfig["minIdleConns"].(int)
 		tmpConfig.MaxConnAge = time.Duration(redisConfig["maxConnAge"].(int))
 		tmpConfig.ReadOnly = redisConfig["readOnly"].(bool)
-		tmpConfigs = append(tmpConfigs, tmpConfig)
+		tmpConfigs[i] = tmpConfig
 	}
 	r.RedisConfig = tmpConfigs
 }
@@ -100,9 +101,14 @@ type RedisSentinelConfig struct {
 }
 
 func (r *RedisSentinelConfig) ConfigAdd(config map[interface{}]interface{}) {
-	r.Addrs = config["addrs"].([]string)
-	r.MasterName = config["readOnly"].(string)
-	r.Password = config["poolSize"].(string)
+	interfaceAddrs := config["addrs"].([]interface{})
+	addrs := make([]string, len(interfaceAddrs))
+	for i, v := range interfaceAddrs {
+		addrs[i] = v.(string)
+	}
+	r.Addrs = addrs
+	r.MasterName = config["masterName"].(string)
+	r.Password = config["password"].(string)
 }
 
 // redis集群配置
@@ -115,7 +121,12 @@ type RedisClusterConfig struct {
 }
 
 func (r *RedisClusterConfig) ConfigAdd(config map[interface{}]interface{}) {
-	r.Addrs = config["addrs"].([]string)
+	interfaceAddrs := config["addrs"].([]interface{})
+	addrs := make([]string, len(interfaceAddrs))
+	for i, v := range interfaceAddrs {
+		addrs[i] = v.(string)
+	}
+	r.Addrs = addrs
 	r.ReadOnly = config["readOnly"].(bool)
 	r.PoolSize = config["poolSize"].(int)
 	r.MinIdleConns = config["minIdleConns"].(int)

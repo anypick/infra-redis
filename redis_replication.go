@@ -1,15 +1,17 @@
 package baseredis
 
+import (
+	"github.com/anypick/infra"
+	"github.com/anypick/infra-redis/balance"
+	redisConfig "github.com/anypick/infra-redis/config"
+	"github.com/anypick/infra/utils/common"
+	"github.com/go-redis/redis"
+)
+
 /**
 这里虽然保证了节点的写入一定落在主节点，但是一旦主节点出现故障，无法进行故障转移。
 无法保证Redis高可用，这里要和redis sentinel配合使用
- */
-import (
-	"github.com/go-redis/redis"
-	"register-go/infra"
-	"register-go/infra/utils/balance"
-	"register-go/infra/utils/common"
-)
+*/
 
 // 定义节点角色，主节点（只写）/从节点（只读）
 type NodeRole int
@@ -66,12 +68,12 @@ type RedisReplicationStarter struct {
 
 func (r *RedisReplicationStarter) Init(ctx infra.StarterContext) {
 	clientsMap = make(map[NodeRole][]*redis.Client, 2)
-	masterName = ctx.Yaml().RedisSentinelConfig.MasterName
-	sentinelAddrs = ctx.Yaml().RedisSentinelConfig.Addrs
+	masterName = ctx.Yaml().OtherConfig[redisConfig.SentinelPrefix].(*redisConfig.RedisSentinelConfig).MasterName
+	sentinelAddrs = ctx.Yaml().OtherConfig[redisConfig.SentinelPrefix].(*redisConfig.RedisSentinelConfig).Addrs
 }
 
 func (r *RedisReplicationStarter) Setup(context infra.StarterContext) {
-	config := context.Yaml().RedisConfig
+	config := context.Yaml().OtherConfig[redisConfig.ReplicationPrefix].(*redisConfig.Redis).RedisConfig
 	masterClient := make([]*redis.Client, 0)
 	slaveClient := make([]*redis.Client, 0)
 	for _, cnf := range config {
