@@ -299,6 +299,7 @@ func (b *BaseDao) GetAllHash(page, pageSize int, langCode string) ([]map[string]
 	return datas, nil
 }
 
+// 根据field获取hash数据类型
 func (b *BaseDao) GetHashByField(fieldValue interface{}, fieldName string, langCode string, page, pageSize int) ([]map[string]interface{}, error) {
 	var (
 		hashKey, _ = b.createHashKey(langCode)
