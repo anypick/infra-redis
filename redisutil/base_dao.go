@@ -299,6 +299,19 @@ func (b *BaseDao) GetAllHash(page, pageSize int, langCode string) ([]map[string]
 	return datas, nil
 }
 
+func (b *BaseDao) GetTotal(langCode string) int64 {
+	var (
+		hashKey  string
+		client   = baseredis.RedisClient(baseredis.SlaveNode)
+		err      error
+	)
+	if hashKey, err = b.createHashKey(langCode); err != nil {
+		return 0
+	}
+	keys := client.HKeys(hashKey).Val()
+	return int64(len(keys))
+}
+
 // 根据field获取hash数据类型
 func (b *BaseDao) GetHashByField(fieldValue interface{}, fieldName string, langCode string, page, pageSize int) ([]map[string]interface{}, error) {
 	var (
