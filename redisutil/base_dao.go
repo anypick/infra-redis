@@ -199,7 +199,7 @@ func (b *BaseDao) getKeysByField(fieldName, fieldValue, langCode string, page, p
 		case TypeRange:
 			key, _ = b.createRangeKey(fieldName, langCode)
 			start, stop := countPage(page, pageSize)
-			stringSliceCmd := client.ZRange(key, start, stop)
+			stringSliceCmd := client.ZRevRange(key, start, stop)
 			if stringSliceCmd.Err() != nil {
 				logrus.Warn(stringSliceCmd.Err())
 			} else {
@@ -299,13 +299,12 @@ func (b *BaseDao) GetAllHash(page, pageSize int, langCode string) ([]map[string]
 	return datas, nil
 }
 
-
 func (b *BaseDao) GetHashByField(fieldValue interface{}, fieldName string, langCode string, page, pageSize int) ([]map[string]interface{}, error) {
 	var (
 		hashKey, _ = b.createHashKey(langCode)
-		cmders []redis.Cmder
-		data   []map[string]interface{}
-		err    error
+		cmders     []redis.Cmder
+		data       []map[string]interface{}
+		err        error
 	)
 	pipeline := baseredis.RedisClient(baseredis.SlaveNode).Pipeline()
 	fields := b.getKeysByField(fieldName, common.InterfaceToStr(fieldValue), langCode, page, pageSize)
