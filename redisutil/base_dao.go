@@ -299,6 +299,40 @@ func (b *BaseDao) GetAllHash(page, pageSize int, langCode string) ([]map[string]
 	return datas, nil
 }
 
+
+func (b *BaseDao) GetHashByField(fieldValue interface{}, fieldName string, langCode string, page, pageSize int) ([]map[string]interface{}, error) {
+	var (
+		hashKey, _ = b.createHashKey(langCode)
+		cmders []redis.Cmder
+		data   []map[string]interface{}
+		err    error
+	)
+	pipeline := baseredis.RedisClient(baseredis.SlaveNode).Pipeline()
+	fields := b.getKeysByField(fieldName, common.InterfaceToStr(fieldValue), langCode, page, pageSize)
+	if len(fields) == 0 {
+		logrus.Warn("查询的数据不存在")
+		return nil, nil
+	}
+	data = make([]map[string]interface{}, len(fields))
+	for _, field := range fields {
+		pipeline.HGet(hashKey, field)
+	}
+	if cmders, err = pipeline.Exec(); err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	for i, cmder := range cmders {
+		stringCmd := cmder.(*redis.StringCmd)
+		mapData := make(map[string]interface{})
+		if err = json.Unmarshal([]byte(stringCmd.Val()), &mapData); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		data[i] = mapData
+	}
+	return data, err
+}
+
 // =========================================================================================
 // ======================   创建各种数据类型的Key   ===========================================
 //===========================================================================================
