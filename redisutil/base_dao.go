@@ -456,6 +456,8 @@ func countScore(v interface{}) float64 {
 	switch v.(type) {
 	case time.Time:
 		return float64(v.(time.Time).Unix())
+	case float64:
+		return v.(float64)
 	default:
 		break
 	}
